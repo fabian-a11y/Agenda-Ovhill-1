@@ -1,0 +1,17 @@
+[build]
+publish = "."
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https:; img-src 'self' data: https: blob:; media-src 'self' data: blob: https:; connect-src 'self' https: wss:;"
+
+# SPA-style fallback so deep links resolve to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

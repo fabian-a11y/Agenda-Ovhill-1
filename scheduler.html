@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda por Profesionales</title>
+  <link rel="stylesheet" href="scheduler.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    // Activar modo embebido solo cuando se visualiza dentro del panel In-IDE
+    (function(){
+      const isEmbeddedHost = location.hostname === '127.0.0.1' || location.hostname === '0.0.0.0';
+      const isInIframe = window.self !== window.top;
+      if (isEmbeddedHost || isInIframe) {
+        document.documentElement.classList.add('embedded');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand"></div>
+
+      <div class="field">
+        <label>Selecciona la sucursal</label>
+        <select id="branch-select">
+          <option value="central">Sucursal central</option>
+          <option value="norte">Sucursal norte</option>
+          <option value="sur">Sucursal sur</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Agendas</label>
+        <div class="inline">
+          <input id="agenda-input" list="agenda-specialties" placeholder="Agregar especialidad..." autocomplete="off" />
+          <button id="agenda-add-btn" class="btn" type="button">Agregar</button>
+        </div>
+        <datalist id="agenda-specialties"></datalist>
+        <small class="muted">Máximo 10 especialidades. Click en la X para eliminar.</small>
+        <div id="agenda-list" class="chips"></div>
+      </div>
+
+      <div class="field">
+        <label>Profesional</label>
+        <div class="inline">
+          <input id="professional-input" placeholder="Agregar profesional (Nombre y Apellido)" autocomplete="off" />
+          <button id="professional-add-btn" class="btn" type="button">Agregar</button>
+        </div>
+        <small class="muted">Máximo 15 profesionales. Click en la X para eliminar.</small>
+        <div id="professional-list" class="chips"></div>
+        <div style="height:8px"></div>
+        <select id="professional-filter">
+          <option value="all">Todos</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Especialidad (filtro)</label>
+        <input id="specialty-filter" list="agenda-specialties" placeholder="Filtrar por especialidad..." autocomplete="off" />
+        <small class="muted">Deja vacío para ver todos los profesionales.</small>
+      </div>
+
+      <div class="field">
+        <label>Asignar especialidades a profesionales</label>
+        <div id="prof-specialties" class="profspec-list"></div>
+      </div>
+
+      <div class="field">
+        <label>Estado de la reserva</label>
+        <select id="status-filter">
+          <option value="all">Reservas: todas</option>
+          <option value="reservado">Reservado</option>
+          <option value="confirmado">Confirmado</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+
+      <div class="quick-search">
+        <button id="find-first-slot" class="btn-outline">
+          <i class="fa-regular fa-clock"></i>
+          Búsqueda rápida de hora
+        </button>
+      </div>
+
+      
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <div class="left">
+          <button id="btn-today" class="btn">Hoy</button>
+          <button id="btn-prev" class="icon-btn" aria-label="Anterior">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button id="btn-next" class="icon-btn" aria-label="Siguiente">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+          <h1 class="date-title" id="date-title">Jueves, 06 de mayo de 2024</h1>
+        </div>
+        <div class="middle">
+          <div class="mini-calendar" id="mini-calendar"></div>
+        </div>
+        <div class="right">
+          <button class="icon-btn" title="Actualizar"><i class="fa-solid fa-rotate"></i></button>
+          <button class="icon-btn" id="btn-print" title="Imprimir"><i class="fa-solid fa-print"></i></button>
+          <button class="icon-btn" title="Configurar"><i class="fa-solid fa-gear"></i></button>
+          <button class="btn-primary" id="btn-new">Nueva reserva</button>
+        </div>
+      </header>
+
+      <section class="schedule">
+        <div class="timeline" id="timeline"></div>
+        <div class="grid">
+          <div class="columns" id="columns"></div>
+        </div>
+      </section>
+
+      <footer class="legend">
+        <span><span class="dot" style="--c:#6ea8fe"></span>Reservado</span>
+        <span><span class="dot" style="--c:#9ee493"></span>Confirmado</span>
+        <span><span class="dot" style="--c:#f9d66a"></span>Pendiente</span>
+        <span><span class="dot" style="--c:#f59ab2"></span>Cancelado</span>
+      </footer>
+    </main>
+  </div>
+
+  <script src="scheduler.js"></script>
+  
+  <!-- Modal Nueva Reserva -->
+  <div class="modal-overlay" id="reserve-modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="reserve-title">
+      <div class="modal-header">
+        <h3 id="reserve-title">Nueva reserva</h3>
+        <button class="icon-btn" id="reserve-close" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid2">
+          <div class="field">
+            <label>Profesional</label>
+            <select id="reserve-professional"></select>
+          </div>
+          <div class="field">
+            <label>Fecha</label>
+            <input type="date" id="reserve-date" />
+          </div>
+          <div class="field">
+            <label>Inicio</label>
+            <input type="time" id="reserve-start" step="900" />
+          </div>
+          <div class="field">
+            <label>Fin</label>
+            <input type="time" id="reserve-end" step="900" />
+          </div>
+          <div class="field">
+            <label>Persona</label>
+            <input type="text" id="reserve-person" placeholder="Nombre del paciente" />
+          </div>
+          <div class="field">
+            <label>Título</label>
+            <input type="text" id="reserve-title-input" placeholder="Motivo / servicio" />
+          </div>
+          <div class="field">
+            <label>Estado</label>
+            <select id="reserve-status">
+              <option value="reservado">Reservado</option>
+              <option value="confirmado">Confirmado</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Color</label>
+            <input type="color" id="reserve-color" value="#6ea8fe" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="reserve-delete" style="display:none">Eliminar</button>
+        <button class="btn" id="reserve-cancel">Cancelar</button>
+        <button class="btn-primary" id="reserve-save">Guardar</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
