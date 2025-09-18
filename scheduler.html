@@ -96,14 +96,30 @@
     <main class="main">
       <header class="topbar">
         <div class="left">
-          <button id="btn-today" class="btn">Hoy</button>
-          <button id="btn-prev" class="icon-btn" aria-label="Anterior">
-            <i class="fa-solid fa-chevron-left"></i>
-          </button>
-          <button id="btn-next" class="icon-btn" aria-label="Siguiente">
-            <i class="fa-solid fa-chevron-right"></i>
-          </button>
-          <h1 class="date-title" id="date-title">Jueves, 06 de mayo de 2024</h1>
+          <div class="left-row">
+            <button id="btn-today" class="btn">Hoy</button>
+            <button id="btn-prev" class="icon-btn" aria-label="Anterior">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button id="btn-next" class="icon-btn" aria-label="Siguiente">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <div class="date-wrap">
+              <h1 class="date-title" id="date-title">Jueves, 06 de mayo de 2024</h1>
+              <!-- Client badge positioned 1cm above the date -->
+              <div class="client-badge" id="client-badge" role="button" aria-label="Editar nombre y logo del negocio" tabindex="0">
+                <div class="client-logo" id="client-logo" title="Click para subir logo" role="button" tabindex="0" aria-label="Subir logo">Logo</div>
+                <div class="client-name" id="client-name" contenteditable="true" aria-label="Nombre del negocio">Nombre del negocio</div>
+                <input type="file" id="client-logo-input" accept="image/*" hidden />
+                <div class="badge-actions" aria-label="Acciones de la pestaña">
+                  <button id="badge-save" class="btn small" title="Guardar">Guardar</button>
+                  <button id="badge-toggle" class="icon-btn small" title="Confirmar/Bloquear">🔒</button>
+                  <button id="badge-reset" class="icon-btn small" title="Restablecer">↺</button>
+                </div>
+                <div class="badge-toast" id="badge-toast" role="status" aria-live="polite" aria-atomic="true">Datos guardados</div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="middle">
           <div class="mini-calendar" id="mini-calendar"></div>
@@ -133,7 +149,108 @@
   </div>
 
   <script src="scheduler.js"></script>
-  
+  <script>
+    // Client badge interactions (persist in localStorage)
+    (function(){
+      const nameEl = document.getElementById('client-name');
+      const logoEl = document.getElementById('client-logo');
+      const fileInput = document.getElementById('client-logo-input');
+      const toggleBtn = document.getElementById('badge-toggle');
+      const resetBtn = document.getElementById('badge-reset');
+      const saveBtn = document.getElementById('badge-save');
+      const toastEl = document.getElementById('badge-toast');
+      const storageKeyName = 'clientBadge.name';
+      const storageKeyLogo = 'clientBadge.logo';
+      const storageKeyLocked = 'clientBadge.locked';
+
+      // Load persisted
+      try {
+        const savedName = localStorage.getItem(storageKeyName);
+        if (savedName) nameEl.textContent = savedName;
+        const savedLogo = localStorage.getItem(storageKeyLogo);
+        if (savedLogo) {
+          logoEl.style.backgroundImage = `url(${savedLogo})`;
+          logoEl.textContent = '';
+          logoEl.classList.add('has-image');
+        }
+        const locked = localStorage.getItem(storageKeyLocked) === 'true';
+        setLocked(locked);
+      } catch(e){}
+
+      // Save name on blur/input
+      nameEl.addEventListener('blur', ()=>{
+        localStorage.setItem(storageKeyName, nameEl.textContent.trim());
+      });
+
+      // Save explicit
+      function showToast(){
+        toastEl.classList.add('show');
+        setTimeout(()=> toastEl.classList.remove('show'), 2000);
+      }
+      function saveAll(){
+        try {
+          localStorage.setItem(storageKeyName, nameEl.textContent.trim());
+          const bg = logoEl.style.backgroundImage;
+          if (bg && bg.startsWith('url(')){
+            const dataUrl = bg.slice(4, -1).replaceAll('"','');
+            localStorage.setItem(storageKeyLogo, dataUrl);
+          }
+        } catch(e){}
+        showToast();
+      }
+      saveBtn.addEventListener('click', saveAll);
+      nameEl.addEventListener('input', ()=>{
+        // Optional live save
+        localStorage.setItem(storageKeyName, nameEl.textContent.trim());
+      });
+
+      // Click logo to upload
+      logoEl.addEventListener('click', ()=> fileInput.click());
+      logoEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); fileInput.click(); }});
+
+      fileInput.addEventListener('change', (e)=>{
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(){
+          const dataUrl = reader.result;
+          logoEl.style.backgroundImage = `url(${dataUrl})`;
+          logoEl.textContent = '';
+          logoEl.classList.add('has-image');
+          try { localStorage.setItem(storageKeyLogo, dataUrl); } catch(e){}
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Lock/Unlock handlers
+      function setLocked(isLocked){
+        nameEl.contentEditable = (!isLocked).toString();
+        logoEl.setAttribute('tabindex', isLocked ? '-1' : '0');
+        document.getElementById('client-badge').classList.toggle('locked', isLocked);
+        toggleBtn.textContent = isLocked ? '🔓' : '🔒';
+        try { localStorage.setItem(storageKeyLocked, String(isLocked)); } catch(e){}
+      }
+      toggleBtn.addEventListener('click', ()=>{
+        const newLocked = !(localStorage.getItem(storageKeyLocked) === 'true');
+        setLocked(newLocked);
+      });
+
+      // Reset handlers
+      resetBtn.addEventListener('click', ()=>{
+        try {
+          localStorage.removeItem(storageKeyName);
+          localStorage.removeItem(storageKeyLogo);
+          localStorage.removeItem(storageKeyLocked);
+        } catch(e){}
+        nameEl.textContent = 'Nombre del negocio';
+        logoEl.style.backgroundImage = '';
+        logoEl.textContent = 'Logo';
+        logoEl.classList.remove('has-image');
+        setLocked(false);
+      });
+    })();
+  </script>
+
   <!-- Modal Nueva Reserva -->
   <div class="modal-overlay" id="reserve-modal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="reserve-title">

@@ -1,15 +1,20 @@
 /* Fuente base */
 :root{
-  --bg:#f5f7fb;
+  /* Brand palette from logo */
+  --brand-primary:#5A0A1E;  /* burgundy */
+  --brand-secondary:#B01253;/* magenta */
+  --brand-accent:#E0497A;   /* pink */
+
+  --bg:#fdfbfc;             /* slightly warm background */
   --panel:#ffffff;
   --text:#1f2937;
   --muted:#6b7280;
-  --primary:#7c4dff; /* lila */
-  --primary-2:#9b6dff;
-  --line:#e5e7eb; /* línea de hora (más notoria) */
-  --divider:#cbd5e1; /* gris medio para divisores verticales */
-  --quarter-line:#eff2f8; /* marcación suave cada 15 minutos */
-  --slot:#eef2ff;
+  --primary:var(--brand-primary);
+  --primary-2:var(--brand-secondary);
+  --line:#ead4dc;           /* subtle rose line */
+  --divider:#e1c6d1;        /* rose medium for verticals */
+  --quarter-line:#fff1f6;   /* soft 15-min guides */
+  --slot:#fff5f8;           /* light pink slot */
   /* Alturas base */
   --row-h:64px;
   --header-h:52px;
@@ -37,7 +42,7 @@ body{
 .field label{font-size:.85rem;color:var(--muted);margin-bottom:6px}
 .field input, .field select{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit}
 .btn-outline{width:100%;padding:10px 12px;border:1px dashed var(--primary);color:var(--primary);background:#fff;border-radius:10px;cursor:pointer}
-.btn-outline:hover{background:#faf5ff}
+.btn-outline:hover{background:#fff0f5}
 /* Inline input + button */
 .inline{display:flex;gap:8px;align-items:center}
 .inline .btn{white-space:nowrap}
@@ -57,7 +62,7 @@ small.muted{color:var(--muted)}
 .mc-cell{height:34px; display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted);font-size:.85rem}
 .mc-cell.header{font-weight:600;color:var(--muted);aspect-ratio:auto}
 .mc-cell.day{cursor:pointer}
-.mc-cell.day:hover{background:#f3f4ff}
+.mc-cell.day:hover{background:#fff0f5}
 .mc-cell.today{outline:2px solid var(--primary);color:var(--text)}
 .mc-cell.selected{background:var(--primary);color:#fff}
 
@@ -66,11 +71,58 @@ small.muted{color:var(--muted)}
 .topbar .left{justify-self:start;display:flex;align-items:center;gap:10px}
 .topbar .middle{justify-self:center}
 .topbar .right{justify-self:end;display:flex;align-items:center;gap:10px}
-.topbar .left{display:flex;align-items:center;gap:10px}
 .date-title{font-size:1.05rem;font-weight:600}
+.left-row{display:flex;align-items:center;gap:10px}
+.date-wrap{position:relative;display:inline-block}
 .btn{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer}
 .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer}
 .btn-primary{background:var(--primary);color:#fff;border:0;padding:10px 14px;border-radius:10px}
+.btn-primary:hover{background:#470817}
+
+/* Client badge above date */
+.client-badge{
+  width:8.5cm;
+  height:1.5cm;
+  display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg, var(--primary), var(--primary-2));
+  border:2px solid var(--primary);
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+  padding:6px 10px;
+  cursor:text;
+  margin:0;
+  color:#fff;
+  position:absolute;
+  left:-2cm; /* move 2cm to the left */
+  bottom:calc(100% + 0.5cm); /* move down by 0.5cm from previous */
+  z-index:5;
+}
+.client-logo{
+  width:1.2cm;height:1.2cm;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  background-size:cover;background-position:center;
+  border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:700;
+}
+.client-logo.has-image{background-size:cover;background-position:center;color:transparent}
+.client-name{
+  flex:1 1 auto;
+  font-weight:700;color:#ffffff;
+  outline:none;border:0;background:transparent;
+}
+.client-name:empty::before{content:"Nombre del negocio";color:rgba(255,255,255,.8)}
+
+.badge-actions{display:flex;gap:6px;align-items:center}
+.icon-btn.small{width:28px;height:28px;border-radius:8px;font-size:14px}
+.btn.small{padding:6px 10px;border:0;border-radius:8px;background:#fff;color:var(--primary);font-weight:700;cursor:pointer}
+.btn.small:hover{background:#ffe6ee}
+
+.badge-toast{position:absolute;right:8px;bottom:-28px;background:rgba(34,34,34,.9);color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;transform:translateY(4px)}
+.badge-toast.show{opacity:1;transform:translateY(0)}
+
+/* Print: keep exact size and remove shadow for clarity */
+@media print{
+  .client-badge{box-shadow:none;border-color:#bbb}
+}
 
 /* Schedule grid */
 .schedule{position:relative;display:grid;grid-template-columns: 80px 1fr;min-height:0;flex:1}
@@ -104,7 +156,7 @@ small.muted{color:var(--muted)}
     0 75%;
   background-repeat: no-repeat;
 }
-.hour-row:nth-child(odd){background:#fcfcff}
+.hour-row:nth-child(odd){background:#fffafd}
 .hour-row .cell{border-right:2px solid var(--divider);position:relative}
 
 /* Time labels */
